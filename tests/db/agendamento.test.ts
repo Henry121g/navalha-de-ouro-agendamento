@@ -281,6 +281,43 @@ describe("isolamento de dados (RLS)", () => {
   });
 });
 
+describe("bloqueios de agenda", () => {
+  const addTimeOff = (uid: string, professional: string, start = "08:00", end = "09:00") =>
+    t.as(uid, (tx) =>
+      tx.query<{ id: string }>(`select barbearia.add_time_off($1, $2::date, $3::time, $4::time, 'Teste') as id`, [
+        professional,
+        dia,
+        start,
+        end,
+      ]),
+    );
+
+  it("profissional bloqueia a própria agenda com conversão de fuso", async () => {
+    const r = await addTimeOff(barbeiro, barbeiro);
+    const { rows } = await t.db.query<{ inicio: Date }>(
+      `select lower(period) as inicio from barbearia.time_off where id = $1`,
+      [r.rows[0].id],
+    );
+    expect(new Date(rows[0].inicio).toISOString()).toBe(spLocal(dia, "08:00"));
+  });
+
+  it("profissional não bloqueia a agenda de outro, e cliente não bloqueia nenhuma", async () => {
+    await expect(addTimeOff(barbeiro, outroBarbeiro)).rejects.toThrow(/row-level security/);
+    await expect(addTimeOff(ana, barbeiro)).rejects.toThrow(/row-level security/);
+  });
+
+  it("recusa intervalo invertido", async () => {
+    await expect(addTimeOff(barbeiro, barbeiro, "10:00", "09:00")).rejects.toThrow(/INTERVALO_INVALIDO/);
+  });
+
+  it("expõe início e fim do agendamento como colunas derivadas", async () => {
+    const { rows } = await t.db.query<{ ok: boolean }>(
+      `select bool_and(starts_at = lower(period) and ends_at = upper(period)) as ok from barbearia.bookings`,
+    );
+    expect(rows[0].ok).toBe(true);
+  });
+});
+
 describe("fila de e-mails sem duplicidade", () => {
   it("cada item é reivindicado uma única vez, mesmo com execuções repetidas", async () => {
     const claim = () =>

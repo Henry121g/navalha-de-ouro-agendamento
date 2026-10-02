@@ -96,6 +96,9 @@ create table barbearia.bookings (
   client_id         uuid not null references barbearia.profiles (id),
   service_id        uuid not null references barbearia.services (id),
   period            tstzrange not null check (not isempty(period) and lower_inc(period) and not upper_inc(period)),
+  -- Colunas derivadas para consultas e para a API (evita interpretar o texto do range no cliente).
+  starts_at         timestamptz generated always as (lower(period)) stored,
+  ends_at           timestamptz generated always as (upper(period)) stored,
   price_cents       int not null check (price_cents >= 0), -- preço congelado no momento da reserva
   status            barbearia.booking_status not null default 'confirmed',
   cancelled_at      timestamptz,
@@ -109,8 +112,9 @@ create table barbearia.bookings (
     exclude using gist (professional_id with =, period with &&)
     where (status <> 'cancelled')
 );
-create index on barbearia.bookings (client_id, lower(period));
-create index on barbearia.bookings (shop_id, lower(period));
+create index on barbearia.bookings (client_id, starts_at);
+create index on barbearia.bookings (shop_id, starts_at);
+create index on barbearia.bookings (professional_id, starts_at);
 
 -- Fila de e-mails. unique(booking_id, kind) impede lembretes duplicados.
 create table barbearia.notification_outbox (
@@ -356,6 +360,32 @@ begin
   return v_id;
 end $$;
 
+-- Bloqueio informado em data/hora locais; convertido no fuso da barbearia.
+-- security invoker: a política RLS de time_off decide quem pode inserir.
+create or replace function barbearia.add_time_off(
+  p_professional uuid, p_day date, p_start time, p_end time, p_reason text default null)
+returns uuid language plpgsql security invoker set search_path = '' as $$
+declare
+  v_tz text;
+  v_id uuid;
+begin
+  if p_end <= p_start then
+    raise exception 'INTERVALO_INVALIDO' using errcode = '22023';
+  end if;
+  select s.timezone into v_tz
+  from barbearia.professionals p join barbearia.shops s on s.id = p.shop_id
+  where p.id = p_professional;
+  if v_tz is null then
+    raise exception 'AGENDAMENTO_INEXISTENTE' using errcode = 'P0002';
+  end if;
+  insert into barbearia.time_off (professional_id, period, reason)
+  values (p_professional,
+          tstzrange((p_day + p_start) at time zone v_tz, (p_day + p_end) at time zone v_tz, '[)'),
+          left(nullif(trim(p_reason), ''), 120))
+  returning id into v_id;
+  return v_id;
+end $$;
+
 -- Equipe registra o desfecho depois do horário.
 create or replace function barbearia.set_booking_outcome(p_booking uuid, p_status barbearia.booking_status)
 returns void language plpgsql security definer set search_path = '' as $$
@@ -460,6 +490,7 @@ grant execute on function barbearia.available_slots(uuid, uuid, date) to anon, a
 grant execute on function barbearia.book_appointment(uuid, uuid, timestamptz, uuid) to authenticated;
 grant execute on function barbearia.cancel_booking(uuid, text) to authenticated;
 grant execute on function barbearia.set_booking_outcome(uuid, barbearia.booking_status) to authenticated;
+grant execute on function barbearia.add_time_off(uuid, date, time, time, text) to authenticated;
 grant execute on function barbearia.dashboard_metrics(timestamptz, timestamptz) to authenticated;
 -- As políticas chamam estas funções, inclusive para visitantes anônimos no catálogo.
 grant execute on function barbearia.my_shop(), barbearia.is_admin_of(uuid),
