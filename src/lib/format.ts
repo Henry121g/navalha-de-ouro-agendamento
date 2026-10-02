@@ -49,6 +49,17 @@ export function localDate(instant: Date, timeZone: string): string {
   return parts; // en-CA já produz AAAA-MM-DD
 }
 
+/** Instante UTC (ISO) correspondente a `day` + `time` no fuso informado, considerando o deslocamento da data. */
+export function zonedToUtcIso(day: string, time: string, timeZone: string): string {
+  const guess = new Date(`${day}T${time}:00Z`);
+  const offsetName = new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "longOffset" })
+    .formatToParts(guess)
+    .find((p) => p.type === "timeZoneName")?.value; // ex.: "GMT-03:00" ou "GMT"
+  const m = offsetName?.match(/GMT([+-])(\d{2}):(\d{2})/);
+  const offsetMin = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+  return new Date(guess.getTime() - offsetMin * 60_000).toISOString();
+}
+
 /** Próximos `count` dias (AAAA-MM-DD) a partir de hoje no fuso da barbearia. */
 export function upcomingDays(count: number, timeZone: string, now = new Date()): string[] {
   const today = localDate(now, timeZone);

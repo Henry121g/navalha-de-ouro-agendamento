@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { friendlyDbError, GENERIC_ERROR } from "./errors";
-import { formatDuration, formatMoney, formatTime, localDate, upcomingDays } from "./format";
+import { formatDuration, formatMoney, formatTime, localDate, upcomingDays, zonedToUtcIso } from "./format";
 
 const SP = "America/Sao_Paulo";
 
@@ -25,6 +25,13 @@ describe("formatação", () => {
   it("calcula a data local perto da meia-noite", () => {
     // 02:30 UTC do dia 6 ainda é dia 5 em São Paulo.
     expect(localDate(new Date("2026-10-06T02:30:00Z"), SP)).toBe("2026-10-05");
+  });
+
+  it("converte data/hora local em UTC respeitando o fuso de cada data", () => {
+    expect(zonedToUtcIso("2026-10-05", "00:00", SP)).toBe("2026-10-05T03:00:00.000Z");
+    // Nova York: horário de verão em julho (UTC−4) e padrão em dezembro (UTC−5).
+    expect(zonedToUtcIso("2026-07-01", "09:00", "America/New_York")).toBe("2026-07-01T13:00:00.000Z");
+    expect(zonedToUtcIso("2026-12-01", "09:00", "America/New_York")).toBe("2026-12-01T14:00:00.000Z");
   });
 
   it("lista os próximos dias a partir da data local", () => {

@@ -84,6 +84,8 @@ create table barbearia.time_off (
   id               uuid primary key default gen_random_uuid(),
   professional_id  uuid not null references barbearia.professionals (id) on delete cascade,
   period           tstzrange not null check (not isempty(period) and lower_inc(period) and not upper_inc(period)),
+  starts_at        timestamptz generated always as (lower(period)) stored,
+  ends_at          timestamptz generated always as (upper(period)) stored,
   reason           text check (char_length(reason) <= 120),
   created_at       timestamptz not null default now()
 );

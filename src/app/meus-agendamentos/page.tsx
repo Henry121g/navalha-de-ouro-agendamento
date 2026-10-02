@@ -6,6 +6,7 @@ import { Alert, buttonStyles } from "@/components/ui";
 import { getShop, requireViewer } from "@/lib/auth";
 import { formatDateTime, formatMoney, STATUS_LABEL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { requestNow } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Meus agendamentos" };
 
@@ -31,7 +32,7 @@ export default async function MyBookingsPage({ searchParams }: PageProps<"/meus-
     .limit(50);
 
   const rows = ((data ?? []) as unknown as Row[]).map((r) => ({ ...r, start: new Date(r.starts_at) }));
-  const now = Date.now();
+  const now = requestNow();
   const deadlineMs = 2 * 3_600_000; // espelha cancel_deadline padrão; o banco é quem decide
   const upcoming = rows.filter((r) => r.status === "confirmed" && r.start.getTime() > now).reverse();
   const past = rows.filter((r) => !upcoming.includes(r));
