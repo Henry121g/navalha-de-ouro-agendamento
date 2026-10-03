@@ -9,7 +9,9 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:demo": "node --env-file=.env.local scripts/seed-demo.ts",
+    "test:concorrencia": "node --env-file=.env.local scripts/concurrency-test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

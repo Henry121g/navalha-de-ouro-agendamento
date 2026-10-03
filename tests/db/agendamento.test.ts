@@ -344,3 +344,33 @@ describe("fila de e-mails sem duplicidade", () => {
     ).rejects.toThrow(/permission denied/);
   });
 });
+
+describe("redefinição dos dados de demonstração", () => {
+  it("só o service_role executa", async () => {
+    await expect(
+      t.as(admin, (tx) => tx.query(`select barbearia.reset_demo_data()`)),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  // Executado por último no arquivo (a redefinição apaga os agendamentos dos outros testes).
+  it("recria dados coerentes, sem sobreposição, e restaura serviços alterados", async () => {
+    await t.db.query(`update barbearia.services set price_cents = 1 where id = $1`, [CORTE]);
+    const n = await t.as(
+      null,
+      async (tx) => (await tx.query<{ n: number }>(`select barbearia.reset_demo_data() as n`)).rows[0].n,
+      "service_role",
+    );
+    expect(n).toBeGreaterThan(20);
+    const { rows } = await t.db.query<{ price_cents: number }>(
+      `select price_cents from barbearia.services where id = $1`,
+      [CORTE],
+    );
+    expect(rows[0].price_cents).toBe(4500);
+    const futuros = await t.db.query<{ n: number }>(
+      `select count(*)::int as n from barbearia.bookings where status = 'confirmed' and starts_at > now()`,
+    );
+    expect(futuros.rows[0].n).toBeGreaterThan(0);
+    // Idempotente: pode rodar de novo sem violar a restrição de exclusão.
+    await t.as(null, (tx) => tx.query(`select barbearia.reset_demo_data()`), "service_role");
+  });
+});
