@@ -3,7 +3,7 @@
 > Projeto de portfólio com **dados fictícios**, desenvolvido com assistência de IA (Claude Code).
 > Não há clientes, barbearias ou agendamentos reais.
 
-**Demonstração:** _pendente de deploy_ · **Status do CI:** ver aba Actions
+**Demonstração:** [navalha-de-ouro-agendamento.vercel.app](https://navalha-de-ouro-agendamento.vercel.app) (contas de demonstração em configuração) · **Status do CI:** ver aba Actions
 
 <!-- Screenshots reais serão adicionadas após o deploy (docs/screenshots/). -->
 
