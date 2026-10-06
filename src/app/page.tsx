@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buttonStyles } from "@/components/ui";
+import { buttonStyles } from "@/components/button-styles";
 import { formatDuration, formatMoney } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 

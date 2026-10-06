@@ -2,7 +2,8 @@
 
 import { useActionState, useRef } from "react";
 import { cancelBooking } from "@/app/meus-agendamentos/actions";
-import { Alert, buttonStyles, SubmitButton } from "@/components/ui";
+import { Alert, SubmitButton } from "@/components/ui";
+import { buttonStyles } from "@/components/button-styles";
 
 /** Cancelamento com confirmação em <dialog> nativo (foco preso e Esc para fechar). */
 export function CancelButton({ bookingId, label }: { bookingId: string; label: string }) {
