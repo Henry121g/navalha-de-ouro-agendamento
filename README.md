@@ -7,6 +7,18 @@
 
 <!-- Screenshots reais serão adicionadas após o deploy (docs/screenshots/). -->
 
+## Telas
+
+<table>
+  <tr>
+    <td width="33%"><a href="docs/telas/inicio.png"><img src="docs/telas/inicio.png" alt="Página inicial com serviços e preços"></a><br><sub>Página inicial com serviços e preços</sub></td>
+    <td width="33%"><a href="docs/telas/agendamento.png"><img src="docs/telas/agendamento.png" alt="Agendamento: serviço, barbeiro, dia, horário livre e resumo antes de confirmar"></a><br><sub>Agendamento: serviço, barbeiro, dia, horário livre e resumo antes de confirmar</sub></td>
+    <td width="33%"><a href="docs/telas/painel-gerente.png"><img src="docs/telas/painel-gerente.png" alt="Painel do gerente: indicadores da semana e agenda"></a><br><sub>Painel do gerente: indicadores da semana e agenda</sub></td>
+  </tr>
+</table>
+
+<sub>Capturas com os dados fictícios da demonstração.</sub>
+
 ## O problema
 
 Barbearias pequenas costumam agendar por mensagens e caderno. Isso gera horários duplicados,
