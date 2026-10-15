@@ -5,7 +5,6 @@
 
 **Demonstração:** [navalha-de-ouro-agendamento.vercel.app](https://navalha-de-ouro-agendamento.vercel.app) (contas de demonstração em configuração) · **Status do CI:** ver aba Actions
 
-<!-- Screenshots reais serão adicionadas após o deploy (docs/screenshots/). -->
 
 ## Telas
 
