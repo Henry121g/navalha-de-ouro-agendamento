@@ -8,6 +8,8 @@
 
 ## Telas
 
+▶ **[Vídeo da demonstração](docs/demo.mp4)** (1 a 2 min, com legenda em cada funcionalidade).
+
 <table>
   <tr>
     <td width="33%"><a href="docs/telas/inicio.png"><img src="docs/telas/inicio.png" alt="Página inicial com serviços e preços"></a><br><sub>Página inicial com serviços e preços</sub></td>
